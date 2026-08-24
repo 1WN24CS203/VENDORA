@@ -22,6 +22,12 @@ CREATE POLICY "Profiles are viewable by authenticated users"
   TO authenticated
   USING (true);
 
+-- Users can insert their own profile
+CREATE POLICY "Users can insert own profile"
+  ON public.profiles FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
+
 -- Users can update their own profile
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
@@ -38,7 +44,9 @@ BEGIN
     NEW.id,
     COALESCE(NEW.raw_user_meta_data ->> 'full_name', NEW.email),
     'admin'
-  );
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
