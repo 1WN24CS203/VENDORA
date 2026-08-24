@@ -37,6 +37,53 @@ export function VendorListContent({ vendors }: VendorListContentProps) {
     suspended: vendors.filter((v) => v.status === 'suspended').length,
   };
 
+  function exportToCSV() {
+    const headers = [
+      'Company Name', 'Contact Person', 'Email', 'Phone', 'GST Number', 'PAN Number',
+      'Tax Registration Type', 'Business Category', 'Address Line 1', 'Address Line 2',
+      'City', 'State', 'Pincode', 'Bank Name', 'Bank Account', 'IFSC Code', 'Status',
+      'Compliance Status', 'Notes', 'Created At'
+    ];
+    
+    const rows = filtered.map(v => [
+      v.company_name || '',
+      v.contact_person || '',
+      v.email || '',
+      v.phone || '',
+      v.gst_number || '',
+      v.pan_number || '',
+      v.tax_registration_type || '',
+      v.business_category || '',
+      v.address_line1 || '',
+      v.address_line2 || '',
+      v.city || '',
+      v.state || '',
+      v.pincode || '',
+      v.bank_name || '',
+      v.bank_account || '',
+      v.ifsc_code || '',
+      v.status || '',
+      v.compliance_status || '',
+      v.notes || '',
+      v.created_at || ''
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `vendora_vendors_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div className="animate-fade-in">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
@@ -44,9 +91,14 @@ export function VendorListContent({ vendors }: VendorListContentProps) {
           <h1>Vendors</h1>
           <p>{vendors.length} vendors registered</p>
         </div>
-        <Link href="/vendors/new" className="btn btn-coral">
-          + Add Vendor
-        </Link>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <button className="btn btn-outline" onClick={exportToCSV}>
+            📥 Export CSV
+          </button>
+          <Link href="/vendors/new" className="btn btn-coral">
+            + Add Vendor
+          </Link>
+        </div>
       </div>
 
       {/* Filters Row */}

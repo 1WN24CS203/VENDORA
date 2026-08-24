@@ -77,6 +77,7 @@ export interface VendorProduct {
   tax_rate: number;
   category: string | null;
   description: string | null;
+  tags?: string[] | null;
   created_at: string;
 }
 
@@ -87,6 +88,7 @@ export interface VendorProductFormData {
   tax_rate: number;
   category: string;
   description: string;
+  tags: string;
 }
 
 // ─── Document Types ──────────────────────────────────────────────────

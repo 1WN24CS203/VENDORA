@@ -52,6 +52,7 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
     tax_rate: 18,
     category: '',
     description: '',
+    tags: '',
   });
   const [savingProduct, setSavingProduct] = useState(false);
   const [productError, setProductError] = useState('');
@@ -101,6 +102,7 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
       tax_rate: 18,
       category: vendor.business_category || 'General',
       description: '',
+      tags: '',
     });
     setProductError('');
     setProductModalOpen(true);
@@ -115,6 +117,7 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
       tax_rate: prod.tax_rate,
       category: prod.category || '',
       description: prod.description || '',
+      tags: prod.tags ? prod.tags.join(', ') : '',
     });
     setProductError('');
     setProductModalOpen(true);
@@ -134,10 +137,20 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
     setProductError('');
     const supabase = createClient();
 
+    const productData = {
+      product_name: productForm.product_name,
+      sku: productForm.sku || null,
+      unit_price: productForm.unit_price,
+      tax_rate: productForm.tax_rate,
+      category: productForm.category || null,
+      description: productForm.description || null,
+      tags: productForm.tags ? productForm.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+    };
+
     if (editingProduct) {
       const { error: updateErr } = await supabase
         .from('vendor_products')
-        .update({ ...productForm })
+        .update(productData)
         .eq('id', editingProduct.id);
 
       if (updateErr) {
@@ -149,7 +162,7 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
       const { error: insertErr } = await supabase
         .from('vendor_products')
         .insert({
-          ...productForm,
+          ...productData,
           vendor_id: vendor.id,
         });
 
@@ -320,6 +333,25 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
                         <td>
                           <div className="table-cell-primary">{prod.product_name}</div>
                           {prod.description && <div className="table-cell-secondary">{prod.description}</div>}
+                          {prod.tags && prod.tags.length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                              {prod.tags.map((tag) => (
+                                <span 
+                                  key={tag} 
+                                  style={{
+                                    fontSize: '10px',
+                                    padding: '2px 6px',
+                                    background: 'var(--coral-bg)',
+                                    color: 'var(--coral)',
+                                    borderRadius: '10px',
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </td>
                         <td style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
                           {prod.sku || '—'}
@@ -556,6 +588,12 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
             value={productForm.description}
             onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
             placeholder="Item specifications, warranty info..."
+          />
+          <Input
+            label="Tags (comma-separated, optional)"
+            value={productForm.tags}
+            onChange={(e) => setProductForm({ ...productForm, tags: e.target.value })}
+            placeholder="e.g. laptop, hardware, office"
           />
         </div>
       </Modal>

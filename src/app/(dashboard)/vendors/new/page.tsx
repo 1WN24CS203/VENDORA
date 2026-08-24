@@ -53,6 +53,9 @@ export default function AddVendorPage() {
     notes: '',
   });
 
+  const [phoneCode, setPhoneCode] = useState('+91');
+  const [rawPhone, setRawPhone] = useState('');
+
   function updateField(field: keyof VendorFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
@@ -139,14 +142,42 @@ export default function AddVendorPage() {
                 placeholder="vendor@company.com"
                 required
               />
-              <Input
-                label="Phone Number"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => updateField('phone', e.target.value)}
-                placeholder="+91 98765 43210"
-                required
-              />
+              <div className="input-group">
+                <label className="input-label">Phone Number (optional)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 'var(--space-2)' }}>
+                  <select
+                    className="select"
+                    value={phoneCode}
+                    onChange={(e) => {
+                      const code = e.target.value;
+                      setPhoneCode(code);
+                      updateField('phone', rawPhone ? `${code} ${rawPhone}` : '');
+                    }}
+                    style={{ height: '42px', marginTop: '0' }}
+                  >
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+971">🇦🇪 +971</option>
+                    <option value="+65">🇸🇬 +65</option>
+                    <option value="+61">🇦🇺 +61</option>
+                    <option value="+81">🇯🇵 +81</option>
+                    <option value="+49">🇩🇪 +49</option>
+                  </select>
+                  <input
+                    type="tel"
+                    className="input"
+                    value={rawPhone}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setRawPhone(val);
+                      updateField('phone', val ? `${phoneCode} ${val}` : '');
+                    }}
+                    placeholder="98765 43210"
+                    style={{ height: '42px', marginTop: '0' }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}

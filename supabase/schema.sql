@@ -215,6 +215,7 @@ CREATE TABLE IF NOT EXISTS public.vendor_products (
   tax_rate NUMERIC(5, 2) NOT NULL DEFAULT 18.00,
   category TEXT,
   description TEXT,
+  tags TEXT[] DEFAULT '{}',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
