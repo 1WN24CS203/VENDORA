@@ -8,6 +8,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [phoneCode, setPhoneCode] = useState('+91');
+  const [rawPhone, setRawPhone] = useState('');
 
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -83,9 +85,35 @@ export default function RegisterPage() {
           <label htmlFor="reg-email" className="input-label">Email Address</label>
           <input id="reg-email" name="email" type="email" className="input" placeholder="you@company.com" required />
         </div>
+        <input type="hidden" name="phone" value={rawPhone ? `${phoneCode} ${rawPhone}` : ''} />
         <div className="input-group">
-          <label htmlFor="reg-phone" className="input-label">Phone Number</label>
-          <input id="reg-phone" name="phone" type="tel" className="input" placeholder="+91 98765 43210" required />
+          <label className="input-label">Phone Number (optional)</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 'var(--space-2)' }}>
+            <select
+              className="select"
+              value={phoneCode}
+              onChange={(e) => setPhoneCode(e.target.value)}
+              style={{ height: '42px', marginTop: '0' }}
+            >
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+971">🇦🇪 +971</option>
+              <option value="+65">🇸🇬 +65</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+81">🇯🇵 +81</option>
+              <option value="+49">🇩🇪 +49</option>
+            </select>
+            <input
+              id="reg-phone"
+              type="tel"
+              className="input"
+              value={rawPhone}
+              onChange={(e) => setRawPhone(e.target.value)}
+              placeholder="98765 43210"
+              style={{ height: '42px', marginTop: '0' }}
+            />
+          </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
           <div className="input-group">
