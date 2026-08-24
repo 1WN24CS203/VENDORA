@@ -142,14 +142,15 @@ CREATE POLICY "Admins and managers can update vendors"
     )
   );
 
--- Only admins can delete vendors
-CREATE POLICY "Only admins can delete vendors"
+-- Admins, managers, or creators can delete vendors
+CREATE POLICY "Admins, managers, or creators can delete vendors"
   ON public.vendors FOR DELETE
   TO authenticated
   USING (
+    registered_by = auth.uid() OR
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
+      WHERE id = auth.uid() AND role IN ('admin', 'manager')
     )
   );
 
@@ -226,8 +227,19 @@ CREATE POLICY "Products viewable by authenticated users"
   TO authenticated
   USING (true);
 
-CREATE POLICY "Authenticated users can manage products"
-  ON public.vendor_products FOR ALL
+CREATE POLICY "Authenticated users can insert products"
+  ON public.vendor_products FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update products"
+  ON public.vendor_products FOR UPDATE
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can delete products"
+  ON public.vendor_products FOR DELETE
   TO authenticated
   USING (true);
 
@@ -252,6 +264,13 @@ CREATE INDEX IF NOT EXISTS idx_vendor_products_vendor ON public.vendor_products(
 -- RESET / CLEANUP SCRIPT — DROP ALL TABLES, TRIGGERS & FUNCTIONS
 -- Copy and run this section if you want to completely remove all tables
 -- ═══════════════════════════════════════════════════════════════════════
-/*
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP TRIGGER IF EXISTS vendors_updated_at ON public.vendors;
 
-*/
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+DROP FUNCTION IF EXISTS public.update_updated_at() CASCADE;
+
+DROP TABLE IF EXISTS public.vendor_products CASCADE;
+DROP TABLE IF EXISTS public.vendor_documents CASCADE;
+DROP TABLE IF EXISTS public.vendors CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;

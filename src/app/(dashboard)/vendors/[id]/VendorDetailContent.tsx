@@ -188,7 +188,11 @@ export function VendorDetailContent({ vendor, products, documents }: VendorDetai
   async function handleDeleteVendor() {
     if (!confirm('Are you sure you want to delete this vendor? This action cannot be undone.')) return;
     const supabase = createClient();
-    await supabase.from('vendors').delete().eq('id', vendor.id);
+    const { error } = await supabase.from('vendors').delete().eq('id', vendor.id);
+    if (error) {
+      alert(`Failed to delete vendor: ${error.message}`);
+      return;
+    }
     router.push('/vendors');
     router.refresh();
   }
