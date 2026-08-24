@@ -24,23 +24,37 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => {
+            try {
+              request.cookies.set(name, value);
+            } catch (err) {
+              console.warn(`Failed to set request cookie "${name}":`, err);
+            }
+          });
           supabaseResponse = NextResponse.next({
             request,
           });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            try {
+              supabaseResponse.cookies.set(name, value, options);
+            } catch (err) {
+              console.warn(`Failed to set response cookie "${name}":`, err);
+            }
+          });
         },
       },
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (err) {
+    console.error("Error retrieving user in middleware auth check:", err);
+  }
 
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register');
@@ -54,9 +68,21 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login';
     const redirectResponse = NextResponse.redirect(url);
     // Copy refreshed cookies from supabaseResponse to the redirect response
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options);
-    });
+    try {
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, {
+          path: cookie.path,
+          domain: cookie.domain,
+          maxAge: cookie.maxAge,
+          expires: cookie.expires,
+          secure: cookie.secure,
+          httpOnly: cookie.httpOnly,
+          sameSite: cookie.sameSite,
+        });
+      });
+    } catch (err) {
+      console.warn("Failed to copy cookies during redirect to login:", err);
+    }
     return redirectResponse;
   }
 
@@ -65,12 +91,25 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/dashboard';
     const redirectResponse = NextResponse.redirect(url);
     // Copy refreshed cookies from supabaseResponse to the redirect response
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options);
-    });
+    try {
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, {
+          path: cookie.path,
+          domain: cookie.domain,
+          maxAge: cookie.maxAge,
+          expires: cookie.expires,
+          secure: cookie.secure,
+          httpOnly: cookie.httpOnly,
+          sameSite: cookie.sameSite,
+        });
+      });
+    } catch (err) {
+      console.warn("Failed to copy cookies during redirect to dashboard:", err);
+    }
     return redirectResponse;
   }
 
   return supabaseResponse;
 }
+
 
