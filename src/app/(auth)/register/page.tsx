@@ -95,14 +95,14 @@ export default function RegisterPage() {
               onChange={(e) => setPhoneCode(e.target.value)}
               style={{ height: '42px', marginTop: '0' }}
             >
-              <option value="+91">🇮🇳 +91</option>
-              <option value="+1">🇺🇸 +1</option>
-              <option value="+44">🇬🇧 +44</option>
-              <option value="+971">🇦🇪 +971</option>
-              <option value="+65">🇸🇬 +65</option>
-              <option value="+61">🇦🇺 +61</option>
-              <option value="+81">🇯🇵 +81</option>
-              <option value="+49">🇩🇪 +49</option>
+              <option value="+91">IN +91</option>
+              <option value="+1">US +1</option>
+              <option value="+44">GB +44</option>
+              <option value="+971">AE +971</option>
+              <option value="+65">SG +65</option>
+              <option value="+61">AU +61</option>
+              <option value="+81">JP +81</option>
+              <option value="+49">DE +49</option>
             </select>
             <input
               id="reg-phone"
