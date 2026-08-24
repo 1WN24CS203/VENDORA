@@ -37,7 +37,7 @@
 
 ### 🔐 1. Authentication & Route Guarding
 - **Supabase Auth Integration**: Email/Password authentication.
-- **Protected Dashboard Routes**: Middleware protection (`src/lib/supabase/middleware.ts`) automatically redirects unauthenticated users to `/login` and authenticated users away from auth pages to `/dashboard`.
+- **Protected Dashboard Routes**: Middleware protection (`src/lib/supabase/middleware.ts`) automatically redirects unauthenticated users to `/login` and authenticated users away from auth pages to `/dashboard`. This includes safety guards for missing env variables in Vercel to prevent `MIDDLEWARE_INVOCATION_FAILED` crashes, and cookie propagation during redirects to avoid session desync.
 - **Auto Profile Creation**: DB Trigger (`on_auth_user_created`) inserts a `public.profiles` row upon new user sign-up with default `admin` role.
 
 ### 📊 2. Dashboard Analytics (`/dashboard`)
