@@ -2,15 +2,19 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { validateCsrfToken } from '@/lib/csrf';
 
 export interface AuthActionResult {
   error?: string;
   success?: string;
 }
 
-// ─── Sign Up (Admin / Staff) ────────────────────────────────────────
-
 export async function signUpWithPassword(formData: FormData): Promise<AuthActionResult> {
+  const csrfToken = formData.get('_csrf') as string | null;
+  if (!(await validateCsrfToken(csrfToken))) {
+    return { error: 'Invalid request. Please refresh and try again.' };
+  }
+
   const supabase = await createClient();
 
   const email = formData.get('email') as string;
@@ -33,7 +37,6 @@ export async function signUpWithPassword(formData: FormData): Promise<AuthAction
     return { error: error.message };
   }
 
-  // Auto-sign in immediately after sign up
   if (signUpData.session) {
     redirect('/dashboard');
   }
@@ -50,9 +53,12 @@ export async function signUpWithPassword(formData: FormData): Promise<AuthAction
   return { success: 'Account created! You can now sign in.' };
 }
 
-// ─── Sign In (Password) ─────────────────────────────────────────────
-
 export async function signInWithPassword(formData: FormData): Promise<AuthActionResult> {
+  const csrfToken = formData.get('_csrf') as string | null;
+  if (!(await validateCsrfToken(csrfToken))) {
+    return { error: 'Invalid request. Please refresh and try again.' };
+  }
+
   const supabase = await createClient();
 
   const email = formData.get('email') as string;
@@ -70,10 +76,65 @@ export async function signInWithPassword(formData: FormData): Promise<AuthAction
   redirect('/dashboard');
 }
 
-// ─── Sign Out ────────────────────────────────────────────────────────
-
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  redirect('/login');
+}
+
+export async function requestPasswordReset(formData: FormData): Promise<AuthActionResult> {
+  const csrfToken = formData.get('_csrf') as string | null;
+  if (!(await validateCsrfToken(csrfToken))) {
+    return { error: 'Invalid request. Please refresh and try again.' };
+  }
+
+  const supabase = await createClient();
+  const email = formData.get('email') as string;
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/reset-password`,
+  });
+
+  // Always return the same message to prevent user enumeration
+  return {
+    success: 'If that email is registered, a password reset link has been sent. Check your inbox.',
+  };
+}
+
+export async function updatePassword(formData: FormData): Promise<AuthActionResult> {
+  const csrfToken = formData.get('_csrf') as string | null;
+  if (!(await validateCsrfToken(csrfToken))) {
+    return { error: 'Invalid request. Please refresh and try again.' };
+  }
+
+  const supabase = await createClient();
+
+  const code = formData.get('code') as string;
+  const password = formData.get('password') as string;
+  const confirmPassword = formData.get('confirm_password') as string;
+
+  if (password !== confirmPassword) {
+    return { error: 'Passwords do not match.' };
+  }
+  if (password.length < 8) {
+    return { error: 'Password must be at least 8 characters.' };
+  }
+
+  if (code) {
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    if (exchangeError) {
+      return { error: 'Reset link is invalid or has expired. Please request a new one.' };
+    }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return { error: error.message };
+  }
+
   redirect('/login');
 }
