@@ -90,10 +90,12 @@ export async function requestPasswordReset(formData: FormData): Promise<AuthActi
 
   const supabase = await createClient();
   const email = formData.get('email') as string;
+  const clientOrigin = formData.get('origin') as string | null;
 
   const siteUrl =
+    clientOrigin ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vendora-two-tau.vercel.app');
 
   await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${siteUrl}/reset-password`,

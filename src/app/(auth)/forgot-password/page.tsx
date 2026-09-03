@@ -24,6 +24,9 @@ export default function ForgotPasswordPage() {
     setSuccess('');
 
     const formData = new FormData(e.currentTarget);
+    if (typeof window !== 'undefined') {
+      formData.set('origin', window.location.origin);
+    }
     const result = await requestPasswordReset(formData);
 
     if (result?.error) {
