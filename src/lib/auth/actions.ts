@@ -22,6 +22,10 @@ export async function signUpWithPassword(formData: FormData): Promise<AuthAction
   const fullName = formData.get('full_name') as string;
   const phone = formData.get('phone') as string;
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
   const { data: signUpData, error } = await supabase.auth.signUp({
     email,
     password,
@@ -30,6 +34,7 @@ export async function signUpWithPassword(formData: FormData): Promise<AuthAction
         full_name: fullName,
         phone: phone,
       },
+      emailRedirectTo: `${siteUrl}/auth/callback`,
     },
   });
 
@@ -96,7 +101,7 @@ export async function requestPasswordReset(formData: FormData): Promise<AuthActi
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/reset-password`,
+    redirectTo: `${siteUrl}/auth/callback?type=recovery`,
   });
 
   // Always return the same message to prevent user enumeration
