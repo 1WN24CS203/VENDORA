@@ -21,7 +21,6 @@ function ResetPasswordForm() {
     if (match) setCsrfToken(match.split('=')[1]);
   }, []);
 
-  // If there's no code at all (user navigated here directly without the email link)
   if (!code) {
     return (
       <div
@@ -49,14 +48,6 @@ function ResetPasswordForm() {
     setError('');
 
     const formData = new FormData(e.currentTarget);
-
-    // If code is 'exchanged', the session was already established by /auth/callback
-    // so we don't need to pass the code again — just update the password directly
-    if (code === 'exchanged') {
-      formData.delete('code');
-      formData.set('code', '');
-    }
-
     const result = await updatePassword(formData);
 
     if (result?.error) {
@@ -116,7 +107,7 @@ function ResetPasswordForm() {
         {/* CSRF anti-forgery token */}
         <input type="hidden" name="_csrf" value={csrfToken} />
         {/* Pass the Supabase OTP code for session exchange */}
-        <input type="hidden" name="code" value={code === 'exchanged' ? '' : code} />
+        <input type="hidden" name="code" value={code} />
 
         <div className="input-group">
           <label htmlFor="new-password" className="input-label">
