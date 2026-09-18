@@ -92,13 +92,24 @@ export async function requestPasswordReset(formData: FormData): Promise<AuthActi
   const email = formData.get('email') as string;
   const clientOrigin = formData.get('origin') as string | null;
 
-  const siteUrl =
-    clientOrigin ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vendora-two-tau.vercel.app');
+  const resolvedOrigin = (() => {
+    const candidate =
+      clientOrigin ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.VERCEL_URL ||
+      'https://vendora-two-tau.vercel.app';
+
+    const normalized = candidate.startsWith('http') ? candidate : `https://${candidate}`;
+    const withoutTrailingSlash = normalized.replace(/\/$/, '');
+
+    return withoutTrailingSlash.includes('localhost')
+      ? 'https://vendora-two-tau.vercel.app'
+      : withoutTrailingSlash;
+  })();
 
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/reset-password`,
+    redirectTo: `${resolvedOrigin}/reset-password`,
   });
 
   // Always return the same message to prevent user enumeration
