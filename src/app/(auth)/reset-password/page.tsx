@@ -21,7 +21,6 @@ function ResetPasswordForm() {
     let isMounted = true;
 
     async function verifyRecovery() {
-      // 1. Check for error parameters in query string
       const qError = searchParams.get('error_description') || searchParams.get('error');
       if (qError) {
         if (isMounted) {
@@ -32,7 +31,6 @@ function ResetPasswordForm() {
         return;
       }
 
-      // 2. Check for error in URL hash fragment
       if (typeof window !== 'undefined' && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const hashError = hashParams.get('error_description') || hashParams.get('error');
@@ -45,7 +43,6 @@ function ResetPasswordForm() {
           return;
         }
 
-        // If access_token or recovery type is in hash, it is a valid recovery link
         if (hashParams.get('type') === 'recovery' || hashParams.get('access_token')) {
           if (isMounted) {
             setCanReset(true);
@@ -55,7 +52,6 @@ function ResetPasswordForm() {
         }
       }
 
-      // 3. Check for PKCE code in query string
       const code = searchParams.get('code');
       if (code) {
         try {
@@ -79,7 +75,6 @@ function ResetPasswordForm() {
         }
       }
 
-      // 4. Check active session
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -93,7 +88,6 @@ function ResetPasswordForm() {
         console.error('Get session error:', err);
       }
 
-      // 5. Allow brief grace period for onAuthStateChange to fire
       const timer = setTimeout(() => {
         if (isMounted) {
           setVerifying(false);
@@ -103,7 +97,6 @@ function ResetPasswordForm() {
       return () => clearTimeout(timer);
     }
 
-    // Listen for PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
         if (isMounted) {

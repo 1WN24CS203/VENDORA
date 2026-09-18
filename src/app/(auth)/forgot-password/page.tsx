@@ -9,12 +9,15 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [csrfToken, setCsrfToken] = useState('');
+  const [origin, setOrigin] = useState('');
 
   useEffect(() => {
     const match = document.cookie
       .split('; ')
       .find((row) => row.startsWith('__Host-csrf='));
     if (match) setCsrfToken(match.split('=')[1]);
+
+    setOrigin(window.location.origin);
   }, []);
 
   async function handleReset(e: React.FormEvent<HTMLFormElement>) {
@@ -84,6 +87,7 @@ export default function ForgotPasswordPage() {
         >
           {/* CSRF anti-forgery token */}
           <input type="hidden" name="_csrf" value={csrfToken} />
+          <input type="hidden" name="origin" value={origin} />
 
           <div className="input-group">
             <label htmlFor="reset-email" className="input-label">
